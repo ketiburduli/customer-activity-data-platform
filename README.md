@@ -66,7 +66,7 @@ The solution emphasizes correctness, reproducibility, idempotency, and maintaina
 
 ## Warehouse
 
-The analytical warehouse contains four tables:
+The analytical warehouse follows a star-schema inspired design and consists of four analytical tables:
 
 - `dim_customer`
 - `bridge_customer_identity`
@@ -90,7 +90,7 @@ Validation includes:
 - negative platform fees
 - session consistency (`logout_at >= login_at`)
 
-Rejected records receive a deterministic `rejection_reason`, are logged for auditing, and are excluded from downstream processing.
+Rejected records receive a deterministic `rejection_reason`, are logged for auditing purposes, and are excluded from downstream analytical processing.
 
 ---
 
@@ -137,8 +137,6 @@ make query Q="SELECT count() FROM fact_activity_event FINAL"
 
 You can also connect using any SQL client.
 
-Example connection:
-
 ```text
 Host: localhost
 Port: 8123
@@ -167,34 +165,57 @@ The KPI queries use the `FINAL` modifier to ensure correct analytical results af
 
 ---
 
-## Sample Results
+# Example Results
 
-Expected logical row counts after running the pipeline:
+The screenshots below were captured after executing the pipeline against the provided sample dataset.
 
-| Table | Rows |
-|--------|----:|
-| dim_customer | 14 |
-| bridge_customer_identity | 27 |
-| fact_activity_event | 27 |
-| fact_customer_session | 14 |
+## Warehouse Schema
 
-Example KPI output:
+The analytical warehouse created by the pipeline.
 
-### Total platform fees
+![Warehouse Schema](docs/images/warehouse_schema.png)
 
-```text
-tenant-01    9.93
-```
+---
 
-### Daily Active Customers
+## Pipeline Validation
 
-```text
-2026-05-30    8
-2026-05-31    9
-2026-06-01    9
-```
+Invalid records receive a deterministic `rejection_reason`, are logged during pipeline execution for auditing purposes, and are excluded from downstream processing.
 
-Running the pipeline multiple times inserts duplicate physical rows into ClickHouse, while `ReplacingMergeTree` together with `FINAL` preserves the same logical analytical results.
+![Validation Log](docs/images/validation_log.png)
+
+---
+
+## Warehouse Row Counts
+
+Logical row counts after executing the pipeline.
+
+![Warehouse Row Counts](docs/images/warehouse_row_counts.png)
+
+---
+
+## KPI Example — Total Platform Fees
+
+Platform fees aggregated by tenant.
+
+![Platform Fees](docs/images/kpi_platform_fees.png)
+
+---
+
+## KPI Example — Top Customers by Activity
+
+Top customers ranked by activity count and total net result.
+
+![Top Customers](docs/images/kpi_top_customers.png)
+
+---
+
+## KPI Example — Daily Active Customers
+
+Daily Active Customers (DAC) across the sample period.
+
+![Daily Active Customers](docs/images/kpi_daily_active_customers.png)
+
+Running the pipeline multiple times inserts duplicate physical rows into ClickHouse. The warehouse uses `ReplacingMergeTree`, while analytical queries use the `FINAL` modifier to guarantee consistent logical results across reruns.
 
 ---
 
@@ -208,22 +229,32 @@ Given additional time, I would extend the solution with:
 - Airflow orchestration
 - unit and integration tests
 - data quality monitoring
-- CI/CD pipeline
 - monitoring and alerting
+- CI/CD pipeline
+- externalized configuration and secrets management (e.g. HashiCorp Vault or a cloud secrets manager instead of embedding connection details)
 
-Additional architectural considerations are described in `docs/design_note.md`.
+Additional architectural decisions, trade-offs, and production considerations are documented in `docs/design_note.md`.
 
 ---
 
 ## Repository Structure
 
 ```text
-clickhouse/          ClickHouse schema initialization
-docs/                Design documentation
-kafka/               Optional Kafka producer example
-sample-data/         Input datasets
-sql/                 Analytical SQL queries
-src/                 Spark pipeline source code
+clickhouse/
+docs/
+├── design_note.md
+└── images/
+    ├── warehouse_schema.png
+    ├── validation_log.png
+    ├── warehouse_row_counts.png
+    ├── kpi_platform_fees.png
+    ├── kpi_top_customers.png
+    └── kpi_daily_active_customers.png
+
+kafka/
+sample-data/
+sql/
+src/
 
 Dockerfile
 docker-compose.yml
