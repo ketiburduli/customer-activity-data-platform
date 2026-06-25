@@ -11,30 +11,30 @@ Business Rules
 - One real customer receives one deterministic canonical_customer_id.
 - Multiple source identifiers may map to the same canonical customer.
 """
-"""
-Resolve customer identities across PAM and activity-platform source systems.
-"""
-
-import uuid
 
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
-from pyspark.sql.types import StringType
-
-CANONICAL_NAMESPACE = uuid.UUID("12345678-1234-5678-1234-567812345678")
+from pyspark.sql.window import Window
 
 
-@F.udf(returnType=StringType())
-def canonical_customer_id(tenant: str, email_sha256: str) -> str:
-    return str(uuid.uuid5(CANONICAL_NAMESPACE, f"{tenant}:{email_sha256}"))
+def canonical_customer_id_expr(tenant_col, email_col):
+    """
+    Build a deterministic canonical customer id using Spark native functions.
+
+    This avoids Python UDF serialization overhead and remains stable across reruns.
+    """
+    return F.sha2(F.concat_ws(":", tenant_col, email_col), 256)
 
 
 def build_dim_customer(pam_df: DataFrame, app_df: DataFrame) -> DataFrame:
-    return (
+    joined_df = (
         pam_df.alias("pam")
         .join(app_df.alias("app"), on="email_sha256", how="full")
         .withColumn("tenant", F.coalesce(F.col("pam.tenant"), F.lit("tenant-01")))
-        .withColumn("canonical_customer_id", canonical_customer_id(F.col("tenant"), F.col("email_sha256")))
+        .withColumn(
+            "canonical_customer_id",
+            canonical_customer_id_expr(F.col("tenant"), F.col("email_sha256")),
+        )
         .select(
             "canonical_customer_id",
             "tenant",
@@ -43,16 +43,33 @@ def build_dim_customer(pam_df: DataFrame, app_df: DataFrame) -> DataFrame:
             F.col("app.username").alias("username"),
             F.col("pam.country").alias("country"),
             F.to_timestamp("pam.registered_at").alias("registered_at"),
-            F.to_timestamp(F.coalesce(F.col("pam.registered_at"), F.col("app.created_at"))).alias("first_seen_at"),
+            F.to_timestamp(
+                F.coalesce(F.col("pam.registered_at"), F.col("app.created_at"))
+            ).alias("first_seen_at"),
         )
-        .dropDuplicates(["canonical_customer_id"])
+    )
+
+    window = Window.partitionBy("canonical_customer_id").orderBy(
+        F.col("registered_at").asc_nulls_last(),
+        F.col("first_seen_at").asc_nulls_last(),
+        F.col("email_sha256").asc(),
+    )
+
+    return (
+        joined_df
+        .withColumn("rn", F.row_number().over(window))
+        .filter(F.col("rn") == 1)
+        .drop("rn")
     )
 
 
 def build_customer_bridge(pam_df: DataFrame, app_df: DataFrame) -> DataFrame:
     pam_bridge = (
         pam_df
-        .withColumn("canonical_customer_id", canonical_customer_id(F.col("tenant"), F.col("email_sha256")))
+        .withColumn(
+            "canonical_customer_id",
+            canonical_customer_id_expr(F.col("tenant"), F.col("email_sha256")),
+        )
         .select(
             "canonical_customer_id",
             "tenant",
@@ -65,7 +82,10 @@ def build_customer_bridge(pam_df: DataFrame, app_df: DataFrame) -> DataFrame:
     app_bridge = (
         app_df
         .withColumn("tenant", F.lit("tenant-01"))
-        .withColumn("canonical_customer_id", canonical_customer_id(F.col("tenant"), F.col("email_sha256")))
+        .withColumn(
+            "canonical_customer_id",
+            canonical_customer_id_expr(F.col("tenant"), F.col("email_sha256")),
+        )
         .select(
             "canonical_customer_id",
             "tenant",
@@ -75,4 +95,6 @@ def build_customer_bridge(pam_df: DataFrame, app_df: DataFrame) -> DataFrame:
         )
     )
 
-    return pam_bridge.unionByName(app_bridge).dropDuplicates(["tenant", "source_system", "source_customer_id"])
+    return pam_bridge.unionByName(app_bridge).dropDuplicates(
+        ["tenant", "source_system", "source_customer_id"]
+    )

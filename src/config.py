@@ -21,7 +21,7 @@ APP_CUSTOMERS_PATH = SAMPLE_DATA_DIR / "app_customers.json"
 ACTIVITY_EVENTS_PATH = SAMPLE_DATA_DIR / "activity_events.json"
 CUSTOMER_SESSIONS_PATH = SAMPLE_DATA_DIR / "customer_sessions.json"
 
-CLICKHOUSE_HOST = "localhost"
+CLICKHOUSE_HOST = "clickhouse"
 CLICKHOUSE_PORT = 8123
 CLICKHOUSE_USER = "dpe"
 CLICKHOUSE_PASSWORD = "dpe"

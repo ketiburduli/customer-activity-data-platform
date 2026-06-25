@@ -1,52 +1,37 @@
 """
 validator.py
-
-Purpose
--------
-Validate incoming datasets before loading the warehouse.
-
-Business Rules
---------------
-- Required fields must be present.
-- Monetary values must be valid Decimal(38,18).
-- platform_fee_usdt cannot be negative.
-- Duplicate activity events are removed using the natural key
-  (event_id, app_customer_id).
-
-Invalid records are excluded from downstream processing and
-reported through application logging.
 """
+
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
 from pyspark.sql.types import DecimalType
-
 
 DECIMAL_38_18 = DecimalType(38, 18)
 
 
 def validate_activity_events(df: DataFrame) -> tuple[DataFrame, DataFrame]:
-    df = (
+    prepared_df = (
         df
         .withColumn("net_result_decimal", F.col("net_result_usdt").cast(DECIMAL_38_18))
         .withColumn("platform_fee_decimal", F.col("platform_fee_usdt").cast(DECIMAL_38_18))
+        .withColumn(
+            "rejection_reason",
+            F.when(F.col("event_id").isNull(), "missing_event_id")
+            .when(F.col("app_customer_id").isNull(), "missing_app_customer_id")
+            .when(F.col("tenant").isNull(), "missing_tenant")
+            .when(F.col("event_time").isNull(), "missing_event_time")
+            .when(F.col("net_result_decimal").isNull(), "invalid_net_result_usdt")
+            .when(F.col("platform_fee_decimal").isNull(), "invalid_platform_fee_usdt")
+            .when(F.col("platform_fee_decimal") < F.lit(0).cast(DECIMAL_38_18), "negative_platform_fee_usdt")
+        )
     )
 
-    invalid_condition = (
-        F.col("event_id").isNull()
-        | F.col("app_customer_id").isNull()
-        | F.col("tenant").isNull()
-        | F.col("event_time").isNull()
-        | F.col("net_result_decimal").isNull()
-        | F.col("platform_fee_decimal").isNull()
-        | (F.col("platform_fee_decimal") < F.lit(0).cast(DECIMAL_38_18))
-    )
-
-    invalid_df = df.filter(invalid_condition)
+    invalid_df = prepared_df.filter(F.col("rejection_reason").isNotNull())
 
     valid_df = (
-        df
-        .filter(~invalid_condition)
-        .drop("net_result_usdt", "platform_fee_usdt")
+        prepared_df
+        .filter(F.col("rejection_reason").isNull())
+        .drop("rejection_reason", "net_result_usdt", "platform_fee_usdt")
         .withColumnRenamed("net_result_decimal", "net_result_usdt")
         .withColumnRenamed("platform_fee_decimal", "platform_fee_usdt")
         .dropDuplicates(["event_id", "app_customer_id"])
@@ -55,14 +40,28 @@ def validate_activity_events(df: DataFrame) -> tuple[DataFrame, DataFrame]:
     return valid_df, invalid_df
 
 
-def validate_sessions(df: DataFrame) -> DataFrame:
-    return (
+def validate_sessions(df: DataFrame) -> tuple[DataFrame, DataFrame]:
+    prepared_df = (
         df
-        .filter(
-            F.col("session_id").isNotNull()
-            & F.col("pam_customer_id").isNotNull()
-            & F.col("login_at").isNotNull()
-            & F.col("logout_at").isNotNull()
+        .withColumn("login_at_ts", F.to_timestamp("login_at"))
+        .withColumn("logout_at_ts", F.to_timestamp("logout_at"))
+        .withColumn(
+            "rejection_reason",
+            F.when(F.col("session_id").isNull(), "missing_session_id")
+            .when(F.col("pam_customer_id").isNull(), "missing_pam_customer_id")
+            .when(F.col("login_at_ts").isNull(), "invalid_login_at")
+            .when(F.col("logout_at_ts").isNull(), "invalid_logout_at")
+            .when(F.col("logout_at_ts") < F.col("login_at_ts"), "logout_before_login")
         )
+    )
+
+    invalid_df = prepared_df.filter(F.col("rejection_reason").isNotNull())
+
+    valid_df = (
+        prepared_df
+        .filter(F.col("rejection_reason").isNull())
+        .drop("rejection_reason", "login_at_ts", "logout_at_ts")
         .dropDuplicates(["session_id"])
     )
+
+    return valid_df, invalid_df

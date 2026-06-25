@@ -9,3 +9,19 @@ venv/
 *.duckdb
 *.sqlite
 *.db
+
+# Git
+.git/
+.gitignore
+
+# Python cache
+.pytest_cache/
+.mypy_cache/
+
+# Local output
+logs/
+output/
+tmp/
+
+# Docker
+clickhouse-data/

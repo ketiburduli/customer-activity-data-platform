@@ -8,7 +8,7 @@ CREATE DATABASE IF NOT EXISTS warehouse;
 
 CREATE TABLE IF NOT EXISTS warehouse.dim_customer
 (
-    canonical_customer_id UUID,
+    canonical_customer_id String,
     tenant LowCardinality(String),
     email_sha256 String,
     full_name Nullable(String),
@@ -26,7 +26,7 @@ ORDER BY (tenant, canonical_customer_id);
 
 CREATE TABLE IF NOT EXISTS warehouse.bridge_customer_identity
 (
-    canonical_customer_id UUID,
+    canonical_customer_id String,
     tenant LowCardinality(String),
     source_system LowCardinality(String), -- PAM or APP
     source_customer_id String,
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS warehouse.fact_activity_event
 (
     event_id String,
     app_customer_id String,
-    canonical_customer_id UUID,
+    canonical_customer_id String,
     tenant LowCardinality(String),
     event_type LowCardinality(String),
     event_time DateTime64(3, 'UTC'),
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS warehouse.fact_customer_session
 (
     session_id String,
     pam_customer_id String,
-    canonical_customer_id UUID,
+    canonical_customer_id String,
     tenant LowCardinality(String),
     login_at DateTime64(3, 'UTC'),
     logout_at DateTime64(3, 'UTC'),
