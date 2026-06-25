@@ -1,0 +1,14 @@
+{"session_id": "S-880113", "pam_customer_id": "TG-100482", "login_at": "2026-05-31T18:05:00Z", "logout_at": "2026-05-31T19:40:11Z", "device": "ios", "ip_region": "EU-WEST"}
+{"session_id": "S-880126", "pam_customer_id": "TG-100990", "login_at": "2026-06-01T09:12:00Z", "logout_at": "2026-06-01T09:58:20Z", "device": "android", "ip_region": "EU-WEST"}
+{"session_id": "S-880139", "pam_customer_id": "TG-100485", "login_at": "2026-05-30T11:00:00Z", "logout_at": "2026-05-30T11:45:30Z", "device": "web", "ip_region": "AP-SOUTHEAST"}
+{"session_id": "S-880152", "pam_customer_id": "TG-100488", "login_at": "2026-05-31T20:15:00Z", "logout_at": "2026-05-31T21:05:42Z", "device": "ios", "ip_region": "EU-SOUTH"}
+{"session_id": "S-880165", "pam_customer_id": "TG-100490", "login_at": "2026-05-31T17:30:00Z", "logout_at": "2026-05-31T18:01:15Z", "device": "android", "ip_region": "ME-CENTRAL"}
+{"session_id": "S-880178", "pam_customer_id": "TG-100493", "login_at": "2026-06-01T08:40:00Z", "logout_at": "2026-06-01T09:20:00Z", "device": "web", "ip_region": "EU-EAST"}
+{"session_id": "S-880191", "pam_customer_id": "TG-100495", "login_at": "2026-05-30T22:10:00Z", "logout_at": "2026-05-30T23:00:05Z", "device": "ios", "ip_region": "SA-EAST"}
+{"session_id": "S-880204", "pam_customer_id": "TG-100498", "login_at": "2026-05-31T13:35:00Z", "logout_at": "2026-05-31T14:10:48Z", "device": "android", "ip_region": "AP-NORTHEAST"}
+{"session_id": "S-880217", "pam_customer_id": "TG-100500", "login_at": "2026-06-01T16:05:00Z", "logout_at": "2026-06-01T16:55:22Z", "device": "web", "ip_region": "AP-SOUTH"}
+{"session_id": "S-880230", "pam_customer_id": "TG-100503", "login_at": "2026-05-31T19:20:00Z", "logout_at": "2026-05-31T20:02:33Z", "device": "ios", "ip_region": "EU-CENTRAL"}
+{"session_id": "S-880243", "pam_customer_id": "TG-100505", "login_at": "2026-06-01T10:50:00Z", "logout_at": "2026-06-01T11:30:10Z", "device": "android", "ip_region": "AP-NORTHEAST"}
+{"session_id": "S-880256", "pam_customer_id": "TG-100508", "login_at": "2026-05-30T21:05:00Z", "logout_at": "2026-05-30T21:44:19Z", "device": "web", "ip_region": "EU-CENTRAL"}
+{"session_id": "S-880269", "pam_customer_id": "TG-100510", "login_at": "2026-05-31T12:00:00Z", "logout_at": "2026-05-31T12:40:00Z", "device": "ios", "ip_region": "EU-WEST"}
+{"session_id": "S-880282", "pam_customer_id": "TG-100512", "login_at": "2026-05-30T15:00:00Z", "logout_at": "2026-05-30T15:30:00Z", "device": "web", "ip_region": "EU-NORTH"}
