@@ -30,5 +30,3 @@
 {"event_id": "E-2026060100654", "app_customer_id": "PK-55030", "tenant": "tenant-01", "event_type": "slots", "event_time": "2026-06-01T12:11:00Z", "net_result_usdt": "2.000000000000000000", "platform_fee_usdt": "-0.300000000000000000"}
 {"event_id": "E-2026060100901", "app_customer_id": "PK-55026", "tenant": "tenant-01", "event_type": "table", "event_time": "2026-06-01T15:30:00Z", "net_result_usdt": "-3.7X", "platform_fee_usdt": "0.200000000000000000"}
 {"event_id": "E-2026060100902", "app_customer_id": "PK-55022", "tenant": "tenant-01", "event_type": "slots", "net_result_usdt": "1.500000000000000000", "platform_fee_usdt": "0.100000000000000000"}
-{"event_id": "E-T2-0001", "app_customer_id": "PK-90001", "tenant": "tenant-02", "event_type": "slots", "event_time": "2026-05-30T12:00:00Z", "net_result_usdt": "5.000000000000000000", "platform_fee_usdt": "0.250000000000000000"}
-{"event_id": "E-T2-0002", "app_customer_id": "PK-90001", "tenant": "tenant-02", "event_type": "table", "event_time": "2026-05-31T12:00:00Z", "net_result_usdt": "-2.000000000000000000", "platform_fee_usdt": "0.100000000000000000"}

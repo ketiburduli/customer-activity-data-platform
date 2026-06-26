@@ -12,4 +12,3 @@
 {"pam_customer_id": "TG-100510", "tenant": "tenant-01", "full_name": "Aisha Bello", "email_sha256": "7cdcdecbb1775b0b26995f0955263ca01198ffc1827cb7c5ec3e17c87969110b", "country": "NG", "registered_at": "2026-05-30T09:14:22Z"}
 {"pam_customer_id": "TG-100990", "tenant": "tenant-01", "full_name": "Mara Okonkwo", "email_sha256": "11f9e90353adaa5cc26dd9fb8d6aa08e78c0d7b7d0f72644afe7769e68c6c97b", "country": "NG", "registered_at": "2026-05-31T11:02:40Z"}
 {"pam_customer_id": "TG-100512", "tenant": "tenant-01", "full_name": "Hanna Virtanen", "email_sha256": "ad52572bdcdeaf8039dc3208354df96a40d0afd279cb4ff4edabc159e83b6c78", "country": "FI", "registered_at": "2026-05-30T14:51:09Z"}
-{"pam_customer_id": "T2-900001", "tenant": "tenant-02", "full_name": "Nadia Farah", "email_sha256": "aaaa1111bbbb2222cccc3333dddd4444eeee5555ffff6666aaaa7777bbbb8888", "country": "MT", "registered_at": "2026-05-30T09:00:00Z"}
