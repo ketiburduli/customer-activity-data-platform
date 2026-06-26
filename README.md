@@ -262,3 +262,9 @@ Makefile
 README.md
 requirements.txt
 ```
+
+
+## Multi-Tenant Validation
+
+The pipeline was successfully validated against an extended dataset containing a second tenant (`tenant-02`).
+No code changes were required. Replacing the input datasets and rerunning the pipeline correctly onboarded the additional tenant, demonstrating that the warehouse model and identity resolution are tenant-aware by design.
