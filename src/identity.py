@@ -7,8 +7,9 @@ Resolve customer identities across multiple source systems.
 
 Business Rules
 --------------
-- email_sha256 is the only trusted cross-system join key.
-- One real customer receives one deterministic canonical_customer_id.
+- email_sha256 is the trusted cross-system join key.
+- tenant is part of canonical identity to support multi-tenancy.
+- One real customer receives one deterministic canonical_customer_id per tenant.
 - Multiple source identifiers may map to the same canonical customer.
 """
 
@@ -30,15 +31,9 @@ def build_dim_customer(pam_df: DataFrame, app_df: DataFrame) -> DataFrame:
     joined_df = (
         pam_df.alias("pam")
         .join(app_df.alias("app"), on="email_sha256", how="full")
-        .withColumn("tenant", F.coalesce(F.col("pam.tenant"), F.lit("tenant-01")))
-        .withColumn(
-            "canonical_customer_id",
-            canonical_customer_id_expr(F.col("tenant"), F.col("email_sha256")),
-        )
         .select(
-            "canonical_customer_id",
-            "tenant",
-            "email_sha256",
+            F.coalesce(F.col("pam.tenant"), F.col("app.tenant")).alias("tenant"),
+            F.col("email_sha256"),
             F.col("pam.full_name").alias("full_name"),
             F.col("app.username").alias("username"),
             F.col("pam.country").alias("country"),
@@ -46,6 +41,10 @@ def build_dim_customer(pam_df: DataFrame, app_df: DataFrame) -> DataFrame:
             F.to_timestamp(
                 F.coalesce(F.col("pam.registered_at"), F.col("app.created_at"))
             ).alias("first_seen_at"),
+        )
+        .withColumn(
+            "canonical_customer_id",
+            canonical_customer_id_expr(F.col("tenant"), F.col("email_sha256")),
         )
     )
 
@@ -81,7 +80,6 @@ def build_customer_bridge(pam_df: DataFrame, app_df: DataFrame) -> DataFrame:
 
     app_bridge = (
         app_df
-        .withColumn("tenant", F.lit("tenant-01"))
         .withColumn(
             "canonical_customer_id",
             canonical_customer_id_expr(F.col("tenant"), F.col("email_sha256")),

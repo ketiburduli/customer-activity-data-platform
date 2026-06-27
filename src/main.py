@@ -36,7 +36,8 @@ def build_fact_activity(valid_activity_df, bridge_df):
         valid_activity_df.alias("a")
         .join(
             app_bridge.alias("b"),
-            F.col("a.app_customer_id") == F.col("b.source_customer_id"),
+            (F.col("a.app_customer_id") == F.col("b.source_customer_id"))
+            & (F.col("a.tenant") == F.col("b.tenant")),
             "left",
         )
         .withColumn("event_time_ts", F.to_timestamp("a.event_time"))
@@ -73,7 +74,7 @@ def build_fact_sessions(valid_sessions_df, bridge_df):
         F.col("s.session_id"),
         F.col("s.pam_customer_id"),
         F.col("b.canonical_customer_id"),
-        F.coalesce(F.col("b.tenant"), F.lit("tenant-01")).alias("tenant"),
+        F.col("b.tenant").alias("tenant"),
         F.col("login_at_ts").alias("login_at"),
         F.col("logout_at_ts").alias("logout_at"),
         F.to_date("login_at_ts").alias("session_date"),
@@ -105,6 +106,14 @@ def main() -> None:
     app_df = read_ndjson(spark, APP_CUSTOMERS_PATH, APP_CUSTOMERS_SCHEMA)
     activity_df = read_ndjson(spark, ACTIVITY_EVENTS_PATH, ACTIVITY_EVENTS_SCHEMA)
     sessions_df = read_ndjson(spark, CUSTOMER_SESSIONS_PATH, CUSTOMER_SESSIONS_SCHEMA)
+
+    app_tenant_df = (
+        activity_df
+        .select("app_customer_id", "tenant")
+        .dropDuplicates(["app_customer_id", "tenant"])
+    )
+
+    app_df = app_df.join(app_tenant_df, on="app_customer_id", how="left")
 
     valid_activity_df, invalid_activity_df = validate_activity_events(activity_df)
     valid_sessions_df, invalid_sessions_df = validate_sessions(sessions_df)

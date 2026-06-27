@@ -267,4 +267,10 @@ requirements.txt
 ## Multi-Tenant Validation
 
 The pipeline was successfully validated against an extended dataset containing a second tenant (`tenant-02`).
-No code changes were required. Replacing the input datasets and rerunning the pipeline correctly onboarded the additional tenant, demonstrating that the warehouse model and identity resolution are tenant-aware by design.
+
+The warehouse model required no structural changes. During deeper validation, I identified a single-tenant assumption in the APP identity enrichment logic.
+Since APP customer records do not contain tenant information, the original implementation assumed a single tenant.
+I generalized the enrichment step to derive tenant information from activity events before identity resolution.
+
+This refinement made canonical identity resolution fully tenant-aware while preserving the original warehouse model, data model, and analytical queries. 
+After the update, replacing the input datasets and rerunning the pipeline correctly onboarded the additional tenant without any further architectural changes.
